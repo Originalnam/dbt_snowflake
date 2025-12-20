@@ -1,4 +1,3 @@
-
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
@@ -24,10 +23,7 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "dbt_packages"
 
 on-run-start:
-  - "CREATE TABLE IF NOT EXISTS {{ target.schema }}.audit_log ( 
-      model_name STRING, 
-      run_timestamp TIMESTAMP 
-    )"
+  - "CREATE TABLE IF NOT EXISTS {{ target.schema }}.audit_log ( model_name STRING, run_timestamp TIMESTAMP )"
 
 # Configuring models
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
@@ -37,8 +33,6 @@ on-run-start:
 # files using the `{{ config(...) }}` macro.
 models:
   airbnb:
-    +grant:
-      select: ["transform", "reporter"]
     +post-hook:
       - "INSERT INTO {{ target.schema }}.audit_log VALUES ('{{ this }}', CURRENT_TIMESTAMP)"
     +materialized: view
@@ -47,8 +41,12 @@ models:
     src:
       +materialized: ephemeral
 
+    +meta:
+      grant:
+        select: ["transform", "reporter"]
 data_tests:
   +store_failures: true
   +schema: _test_failures
 
-  
+flags:
+  require_generic_test_arguments_property: true
